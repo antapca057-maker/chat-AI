@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:   # позволяет запускать вручную через вкладку Actions
+  workflow_dispatch:   # запуск вручную через вкладку Actions
 
 jobs:
   build:
@@ -21,20 +21,20 @@ jobs:
         with:
           flutter-version: '3.19.6'
 
-      # 3. Проверяем зависимости
+      # 3. Подтягиваем зависимости
       - name: Install dependencies
         run: flutter pub get
 
-      # 4. Ставим Android SDK (чтобы сборка прошла без ошибок)
+      # 4. Ставим Android SDK
       - name: Install Android SDK
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget
+          sudo apt-get install -y wget unzip
           wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           mkdir -p $HOME/android-sdk/cmdline-tools
-          unzip commandlinetools-linux-11076708_latest.zip -d $HOME/android-sdk/cmdline-tools
-          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "export PATH=$PATH:$ANDROID_HOME/cmdline-tools/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          unzip -q commandlinetools-linux-11076708_latest.zip -d $HOME/android-sdk/cmdline-tools
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
           yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
           $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
@@ -42,9 +42,9 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. Загружаем готовый APK как артефакт
+      # 6. Загружаем APK как артефакт (актуальная версия v4!)
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
