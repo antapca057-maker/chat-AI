@@ -1,0 +1,2 @@
+-keep class com.nextchat.** { *; }
+-keep class io.flutter.** { *; }

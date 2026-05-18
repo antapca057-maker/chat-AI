@@ -1,0 +1,28 @@
+include ':app'
+
+def localPropertiesFile = new File(rootProject.projectDir, 'local.properties')
+def properties = new Properties()
+
+if (localPropertiesFile.exists()) {
+    properties.load(localPropertiesFile.newDataInputStream())
+}
+
+def flutterSdkPath = properties.getProperty('flutter.sdk')
+if (flutterSdkPath == null) {
+    throw new GradleException('Flutter SDK not found. Define location with flutter.sdk in the local.properties file.')
+}
+
+def flutterModePath = properties.getProperty('flutter.mode')
+if (flutterModePath == null) {
+    flutterModePath = 'debug'
+}
+
+def flutterRoot = file(flutterSdkPath).absoluteFile.getParent()
+
+if (flutterRoot == null) {
+    throw new GradleException('Flutter SDK not found. Define location with flutter.sdk in the local.properties file.')
+}
+
+dependencies {
+    classpath fileTree(dir: File(flutterRoot, 'bin', 'cache', 'dart-sdk', 'lib'), include: ['*.jar'])
+}
