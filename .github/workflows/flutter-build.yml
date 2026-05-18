@@ -13,7 +13,7 @@ jobs:
     steps:
       # 1. Забираем код из репозитория
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. Ставим Flutter SDK (это версия Flutter, не flutter_tts!)
       - name: Setup Flutter
