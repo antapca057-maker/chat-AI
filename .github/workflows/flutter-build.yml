@@ -15,7 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Ставим Flutter SDK (это версия Flutter, а не flutter_tts!)
+      # 2. Ставим Flutter SDK (это версия Flutter, не flutter_tts!)
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
