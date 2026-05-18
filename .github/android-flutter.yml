@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Забираем код
+      # 1. Забираем код из репозитория
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -42,7 +42,7 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. Загружаем APK как артефакт (новая версия v4!)
+      # 6. Загружаем APK как артефакт (актуальная версия v4!)
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
