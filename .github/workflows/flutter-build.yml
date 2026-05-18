@@ -19,7 +19,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.6'
+          flutter_tts: ^4.0.2
+
 
       # 3. Подтягиваем зависимости
       - name: Install dependencies
