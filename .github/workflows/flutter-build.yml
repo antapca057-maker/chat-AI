@@ -4,29 +4,24 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:   # запуск вручную через вкладку Actions
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Забираем код из репозитория
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Ставим Flutter SDK
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter_tts: ^4.0.2
+          flutter-version: '3.19.6'
 
-
-      # 3. Подтягиваем зависимости
       - name: Install dependencies
         run: flutter pub get
 
-      # 4. Ставим Android SDK
       - name: Install Android SDK
         run: |
           sudo apt-get update
@@ -39,11 +34,9 @@ jobs:
           yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
           $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-      # 5. Собираем APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. Загружаем APK как артефакт (актуальная версия v4!)
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
