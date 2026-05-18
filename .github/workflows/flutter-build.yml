@@ -4,27 +4,45 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch:   # позволяет запускать вручную через вкладку Actions
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Забираем код из репозитория
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Ставим Flutter SDK
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
 
+      # 3. Проверяем зависимости
       - name: Install dependencies
         run: flutter pub get
 
+      # 4. Ставим Android SDK (чтобы сборка прошла без ошибок)
+      - name: Install Android SDK
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          unzip commandlinetools-linux-11076708_latest.zip -d $HOME/android-sdk/cmdline-tools
+          echo "export ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "export PATH=$PATH:$ANDROID_HOME/cmdline-tools/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
+          yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
+          $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+
+      # 5. Собираем APK
       - name: Build APK
         run: flutter build apk --release
 
+      # 6. Загружаем готовый APK как артефакт
       - name: Upload APK artifact
         uses: actions/upload-artifact@v3
         with:
