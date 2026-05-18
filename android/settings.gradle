@@ -1,28 +1,45 @@
+pluginManagement {
+    def flutterSdkPath = {
+        def properties = new Properties()
+        def localPropertiesFile = new File(rootProject.projectDir.parentFile.parentFile, '.flutter-sdk')
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.withInputStream { stream ->
+                properties.load(stream)
+            }
+        }
+        properties.getProperty('flutter.sdk')
+    }
+
+    settings.ext.flutterSdkPath = flutterSdkPath()
+    if (settings.ext.flutterSdkPath != null) {
+        includeBuild("${settings.ext.flutterSdkPath}/packages/flutter_tools/gradle")
+    }
+
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id "dev.flutter.flutter-gradle-plugin" version "1.0.0" apply false
+}
+
 include ':app'
 
 def localPropertiesFile = new File(rootProject.projectDir, 'local.properties')
 def properties = new Properties()
 
 if (localPropertiesFile.exists()) {
-    properties.load(localPropertiesFile.newDataInputStream())
+    localPropertiesFile.withInputStream { stream ->
+        properties.load(stream)
+    }
 }
 
 def flutterSdkPath = properties.getProperty('flutter.sdk')
 if (flutterSdkPath == null) {
-    throw new GradleException('Flutter SDK not found. Define location with flutter.sdk in the local.properties file.')
+    flutterSdkPath = System.getenv('FLUTTER_SDK')
 }
 
-def flutterModePath = properties.getProperty('flutter.mode')
-if (flutterModePath == null) {
-    flutterModePath = 'debug'
-}
-
-def flutterRoot = file(flutterSdkPath).absoluteFile.getParent()
-
-if (flutterRoot == null) {
-    throw new GradleException('Flutter SDK not found. Define location with flutter.sdk in the local.properties file.')
-}
-
-dependencies {
-    classpath fileTree(dir: File(flutterRoot, 'bin', 'cache', 'dart-sdk', 'lib'), include: ['*.jar'])
-}
+project(':app').projectDir = new File(rootProject.projectDir, 'app')
