@@ -15,34 +15,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Ставим Flutter SDK (это версия Flutter, не flutter_tts!)
+      # 2. Настраиваем Java (необходима для сборщика Gradle в Ubuntu)
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # 3. Ставим Flutter SDK
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
 
-      # 3. Подтягиваем зависимости (flutter_tts: ^4.2.5 прописан в pubspec.yaml)
+      # 4. Подтягиваем зависимости
       - name: Install dependencies
         run: flutter pub get
-
-      # 4. Ставим Android SDK
-      - name: Install Android SDK
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          unzip -q commandlinetools-linux-11076708_latest.zip -d $HOME/android-sdk/cmdline-tools
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_ENV
-          yes | $HOME/android-sdk/cmdline-tools/bin/sdkmanager --licenses
-          $HOME/android-sdk/cmdline-tools/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       # 5. Собираем APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 6. Загружаем APK как артефакт (актуальная версия v4!)
+      # 6. Загружаем APK как артефакт
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
