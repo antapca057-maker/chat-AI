@@ -32,9 +32,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # 5. Собираем APK
+      # 5. Собираем APK с прошитым ключом из секретов GitHub
       - name: Build APK
-        run: flutter build apk --release
+        run: flutter build apk --release --dart-define=OPENROUTER_KEY=${{ secrets.OPENROUTER_KEY }}
 
       # 6. Загружаем APK как артефакт
       - name: Upload APK artifact
