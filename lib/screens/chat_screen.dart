@@ -12,7 +12,7 @@ Future<void> _sendMessage() async {
     _scrollToBottom();
 
     // НАСТРОЙКИ OPENROUTER AUTO-ROUTER
-    const String apiKey = "sk-or-v1-52f8a00f384ecb6c7243d97a41586796bd"; // <-- Вставь свой токен sk-or-v1-...
+    const String apiKey = String.fromEnvironment('OPENROUTER_KEY');
     const String apiUrl = "https://openrouter.ai/api/v1/chat/completions";
     const String autoModel = "openrouter/auto"; // Универсальный роутер бесплатных моделей
 
