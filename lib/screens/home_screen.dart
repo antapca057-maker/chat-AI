@@ -1,73 +1,141 @@
-Future<void> _sendMessage() async {
-    final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/chat_provider.dart';
+import 'chat_screen.dart';
 
-    final chatProvider = context.read<ChatProvider>();
-    
-    // 1. Создаем сообщение пользователя для текущего чата
-    final userMessage = Message(
-      text: text,
-      isUser: true,
-      timestamp: DateTime.now(),
-    );
-    
-    // Добавляем сообщение в текущий открытый чат
-    chatProvider.addMessageToChat(widget.chat, userMessage);
-    _messageController.clear();
-    _scrollToBottom();
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
 
-    // НАСТРОЙКИ OPENROUTER AUTO-ROUTER
-    const String apiKey = String.fromEnvironment('OPENROUTER_KEY');
-    const String apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-    const String autoModel = "openrouter/auto";
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json; charset=UTF-8',
-          'HTTP-Referer': 'https://github.com/antapca057-maker/chat-AI',
-        },
-        body: jsonEncode({
-          'model': autoModel,
-          'messages': [
-            {'role': 'user', 'content': text}
-          ],
-        }),
-      );
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<ChatProvider>().initialize();
+    });
+  }
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(utf8.decode(response.bodyBytes));
-        final botText = data['choices'][0]['message']['content'].toString().trim();
-
-        // 2. Создаем ответное сообщение от ИИ
-        final botMessage = Message(
-          text: botText,
-          isUser: false,
-          timestamp: DateTime.now(),
-        );
-        
-        if (mounted) {
-          // Добавляем ответ ИИ в этот же чат
-          context.read<ChatProvider>().addMessageToChat(widget.chat, botMessage);
-          _scrollToBottom();
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<ChatProvider>(
+      builder: (context, chatProvider, _) {
+        if (!chatProvider.isInitialized) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
-      } else {
-        _showError('Ошибка роутера: ${response.statusCode}\n${response.body}');
-      }
-    } catch (e) {
-      _showError('Ошибка сети: $e');
-    }
+
+        if (chatProvider.currentChat == null && chatProvider.chats.isEmpty) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('NextChat'),
+              elevation: 0,
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 80,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Нет чатов',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Создайте новый чат, чтобы начать',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 30),
+                  ElevatedButton.icon(
+                    onPressed: () => _showNewChatDialog(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Новый чат'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (chatProvider.currentChat != null) {
+          return ChatScreen(chat: chatProvider.currentChat!);
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('NextChat'),
+            elevation: 0,
+          ),
+          body: ListView(
+            children: [
+              ...chatProvider.chats.map((chat) {
+                return ListTile(
+                  title: Text(chat.title),
+                  subtitle: Text(
+                    '${chat.messages.length} сообщений',
+                  ),
+                  onTap: () => chatProvider.selectChat(chat),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () => chatProvider.deleteChat(chat),
+                  ),
+                );
+              }),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showNewChatDialog(context),
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
+    );
   }
 
-  void _showError(String errorText) {
-    if (!mounted) return;
-    final botErrorMessage = Message(
-      text: "❌ $errorText",
-      isUser: false,
-      timestamp: DateTime.now(),
+  void _showNewChatDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: const Text('Новый чат'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: 'Название чата',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Отмена'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (controller.text.isNotEmpty) {
+                  context
+                      .read<ChatProvider>()
+                      .createNewChat(controller.text);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Создать'),
+            ),
+          ],
+        );
+      },
     );
-    context.read<ChatProvider>().addMessageToChat(widget.chat, botErrorMessage);
-    _scrollToBottom();
   }
+}
