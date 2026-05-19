@@ -1,6 +1,10 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/chat_provider.dart';
+import 'screens/home_screen.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Если у тебя тут есть инициализация Hive, оставь её
   
   runApp(
     MultiProvider(
@@ -22,9 +26,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterialDesign: true,
+        useMaterial3: true,
       ),
-      home: const HomeScreen(), // Вот где должен быть HomeScreen
+      home: const HomeScreen(),
     );
   }
 }
