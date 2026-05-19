@@ -56,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     const String apiKey = String.fromEnvironment('OPENROUTER_KEY');
     const String apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-    const String autoModel = "openrouter/auto";
+    const String autoModel = "openrouter/auto:free";
 
     try {
       final response = await http.post(
