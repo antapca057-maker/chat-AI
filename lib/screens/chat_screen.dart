@@ -2,14 +2,21 @@ Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    final chatProvider = context.read<ChatProvider>();
+    
+    // 1. Создаем сообщение пользователя для текущего чата
     final userMessage = Message(
       text: text,
       isUser: true,
+      timestamp: DateTime.now(),
     );
-    context.read<ChatProvider>().addMessage(userMessage);
+    
+    // Добавляем сообщение в текущий открытый чат
+    chatProvider.addMessageToChat(widget.chat, userMessage);
     _messageController.clear();
     _scrollToBottom();
 
+    // НАСТРОЙКИ OPENROUTER AUTO-ROUTER
     const String apiKey = String.fromEnvironment('OPENROUTER_KEY');
     const String apiUrl = "https://openrouter.ai/api/v1/chat/completions";
     const String autoModel = "openrouter/auto";
@@ -34,13 +41,16 @@ Future<void> _sendMessage() async {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final botText = data['choices'][0]['message']['content'].toString().trim();
 
+        // 2. Создаем ответное сообщение от ИИ
         final botMessage = Message(
           text: botText,
           isUser: false,
+          timestamp: DateTime.now(),
         );
         
         if (mounted) {
-          context.read<ChatProvider>().addMessage(botMessage);
+          // Добавляем ответ ИИ в этот же чат
+          context.read<ChatProvider>().addMessageToChat(widget.chat, botMessage);
           _scrollToBottom();
         }
       } else {
@@ -53,9 +63,11 @@ Future<void> _sendMessage() async {
 
   void _showError(String errorText) {
     if (!mounted) return;
-    context.read<ChatProvider>().addMessage(Message(
+    final botErrorMessage = Message(
       text: "❌ $errorText",
       isUser: false,
-    ));
+      timestamp: DateTime.now(),
+    );
+    context.read<ChatProvider>().addMessageToChat(widget.chat, botErrorMessage);
     _scrollToBottom();
   }
