@@ -2,7 +2,6 @@ Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
-    // 1. Отображаем сообщение пользователя на экране
     final userMessage = Message(
       text: text,
       isUser: true,
@@ -11,13 +10,11 @@ Future<void> _sendMessage() async {
     _messageController.clear();
     _scrollToBottom();
 
-    // НАСТРОЙКИ OPENROUTER AUTO-ROUTER
     const String apiKey = String.fromEnvironment('OPENROUTER_KEY');
     const String apiUrl = "https://openrouter.ai/api/v1/chat/completions";
-    const String autoModel = "openrouter/auto"; // Универсальный роутер бесплатных моделей
+    const String autoModel = "openrouter/auto";
 
     try {
-      // 2. Отправляем запрос на единый эндпоинт
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {
@@ -33,7 +30,6 @@ Future<void> _sendMessage() async {
         }),
       );
 
-      // 3. Обрабатываем ответ
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final botText = data['choices'][0]['message']['content'].toString().trim();
@@ -53,4 +49,13 @@ Future<void> _sendMessage() async {
     } catch (e) {
       _showError('Ошибка сети: $e');
     }
+  }
+
+  void _showError(String errorText) {
+    if (!mounted) return;
+    context.read<ChatProvider>().addMessage(Message(
+      text: "❌ $errorText",
+      isUser: false,
+    ));
+    _scrollToBottom();
   }
